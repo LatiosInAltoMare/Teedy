@@ -234,6 +234,35 @@
         <filtering>false</filtering>
       </resource>
     </resources>
+
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-site-plugin</artifactId>
+        <version>3.12.1</version> <!-- 使用最新版本，截至2025年3月可能是更高版本 -->
+      </plugin>
+
+<!--      <plugin>-->
+<!--        <groupId>org.apache.maven.plugins</groupId>-->
+<!--        <artifactId>maven-pmd-plugin</artifactId>-->
+<!--        <version>3.21.2</version> &lt;!&ndash; 使用最新版本，截至2025年4月可能有更新 &ndash;&gt;-->
+<!--        <executions>-->
+<!--          <execution>-->
+<!--            <goals>-->
+<!--              <goal>check</goal>-->
+<!--            </goals>-->
+<!--          </execution>-->
+<!--        </executions>-->
+<!--      </plugin>-->
+    </plugins>
   </build>
+
+  <distributionManagement>
+    <site>
+      <id>site</id>
+      <url>file://${project.build.directory}/site</url> <!-- 本地文件路径示例 -->
+    </site>
+  </distributionManagement>
 
 </project>

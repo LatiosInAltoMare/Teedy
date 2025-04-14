@@ -19,3 +19,8 @@ docs/*
 
 #macos
 .DS_Store
+
+/docs-core/target
+/docs-web/target
+/docs-web-common/target
+/target
