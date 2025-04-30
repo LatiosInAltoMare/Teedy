@@ -31,7 +31,7 @@ public class DirectoryUtil {
         } else {
             // We are in a webapp environment and nothing is specified, use the default directory for this OS
             if (EnvironmentUtil.isUnix()) {
-                baseDataDir = Paths.get("/var/docs");
+                baseDataDir = Paths.get("/home/huaide/Teedy/week10_lab");
             } if (EnvironmentUtil.isWindows()) {
                 baseDataDir = Paths.get(EnvironmentUtil.getWindowsAppData() + "\\Sismics\\Docs");
             } else if (EnvironmentUtil.isMacOs()) {
