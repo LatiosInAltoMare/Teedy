@@ -197,6 +197,13 @@
       <artifactId>h2</artifactId>
       <scope>test</scope>
     </dependency>
+
+      <dependency>
+          <groupId>org.postgresql</groupId>
+          <artifactId>postgresql</artifactId>
+          <version>42.7.4</version> <!-- 使用最新版本 -->
+      </dependency>
+      
   </dependencies>
 
   <profiles>

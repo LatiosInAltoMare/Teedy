@@ -609,6 +609,12 @@
         <version>${com.levigo.jbig2.levigo-jbig2-imageio.version}</version>
       </dependency>
 
+      <dependency>
+          <groupId>org.postgresql</groupId>
+          <artifactId>postgresql</artifactId>
+          <version>42.7.4</version> <!-- 使用最新版本 -->
+      </dependency>
+
     </dependencies>
   </dependencyManagement>
 
