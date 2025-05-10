@@ -75,4 +75,11 @@ angular.module('docs').controller('Login', function(Restangular, $scope, $rootSc
       });
     });
   };
+
+  $scope.openRegisterRequest = function() {
+    $dialog.dialog({
+      templateUrl: 'partial/docs/register.request.html',
+      controller: 'RegisterRequest'
+    }).open();
+  };
 });

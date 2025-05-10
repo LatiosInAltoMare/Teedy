@@ -417,7 +417,12 @@ angular.module('docs',
           controller: 'GroupProfile'
         }
       }
-    });
+    })
+      .state('register.request', {
+        url: '/register_request',
+        templateUrl: 'partial/docs/register.request.html',
+        controller: 'RegisterRequest'
+      });
 
   // Configuring Restangular
   RestangularProvider.setBaseUrl('../api');

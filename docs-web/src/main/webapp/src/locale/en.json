@@ -14,7 +14,8 @@
     "password_lost_sent_title": "Password reset email sent",
     "password_lost_sent_message": "An email has been sent to <strong>{{ username }}</strong> to reset your password",
     "password_lost_error_title": "Password reset error",
-    "password_lost_error_message": "Unable to send a password reset email, please contact your administrator for a manual reset"
+    "password_lost_error_message": "Unable to send a password reset email, please contact your administrator for a manual reset",
+    "register_request_btn": "Request Registration"
   },
   "passwordlost": {
     "title": "Password lost",
@@ -640,5 +641,22 @@
   "loading": "Loading...",
   "send": "Send",
   "enabled": "Enabled",
-  "disabled": "Disabled"
+  "disabled": "Disabled",
+  "register_request.title": "Request Registration",
+  "register_request.username": "Username",
+  "register_request.email": "Email",
+  "register_request.username_required": "Please enter a username",
+  "register_request.username_length": "Username must be between 3 and 50 characters",
+  "register_request.username_pattern": "Username can only contain letters, numbers, _, @, ., and -",
+  "register_request.email_required": "Please enter an email address",
+  "register_request.email_invalid": "Please enter a valid email address",
+  "register_request.email_length": "Email must not exceed 100 characters",
+  "register_request.cancel": "Cancel",
+  "register_request.submit": "Submit",
+  "register_request.success_title": "Registration Request Submitted",
+  "register_request.success_message": "Your registration request has been submitted successfully. Please wait for admin approval.",
+  "register_request.error_title": "Registration Request Failed",
+  "register_request.error_username_exists": "This username is already in use or requested.",
+  "register_request.error_email_exists": "This email is already in use or requested.",
+  "register_request.error_message": "An error occurred while submitting your request. Please try again."
 }

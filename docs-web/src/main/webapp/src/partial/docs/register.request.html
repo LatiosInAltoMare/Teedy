@@ -1,0 +1,46 @@
+<div class="modal-header">
+    <h3 class="modal-title">{{ 'register_request.title' | translate }}</h3>
+</div>
+<div class="modal-body">
+    <form name="registerRequestForm">
+        <div class="form-group">
+            <label for="inputUsername">{{ 'register_request.username' | translate }}</label>
+            <input type="text" class="form-control" id="inputUsername" name="username"
+                   ng-model="request.username" required
+                   ng-minlength="3" ng-maxlength="50"
+                   ng-pattern="/^[a-zA-Z0-9_@.-]+$/" />
+            <span class="help-block" ng-show="registerRequestForm.username.$error.required">
+        {{ 'register_request.username_required' | translate }}
+      </span>
+            <span class="help-block" ng-show="registerRequestForm.username.$error.minlength || registerRequestForm.username.$error.maxlength">
+        {{ 'register_request.username_length' | translate }}
+      </span>
+            <span class="help-block" ng-show="registerRequestForm.username.$error.pattern">
+        {{ 'register_request.username_pattern' | translate }}
+      </span>
+        </div>
+        <div class="form-group">
+            <label for="inputEmail">{{ 'register_request.email' | translate }}</label>
+            <input type="email" class="form-control" id="inputEmail" name="email"
+                   ng-model="request.email" required
+                   ng-maxlength="100" />
+            <span class="help-block" ng-show="registerRequestForm.email.$error.required">
+        {{ 'register_request.email_required' | translate }}
+      </span>
+            <span class="help-block" ng-show="registerRequestForm.email.$error.email">
+        {{ 'register_request.email_invalid' | translate }}
+      </span>
+            <span class="help-block" ng-show="registerRequestForm.email.$error.maxlength">
+        {{ 'register_request.email_length' | translate }}
+      </span>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-default" ng-click="cancel()">
+        {{ 'register_request.cancel' | translate }}
+    </button>
+    <button class="btn btn-primary" ng-click="submit()" ng-disabled="registerRequestForm.$invalid">
+        {{ 'register_request.submit' | translate }}
+    </button>
+</div>
