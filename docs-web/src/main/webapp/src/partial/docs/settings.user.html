@@ -7,21 +7,58 @@
   <div class="col-md-4 well">
     <table class="table table-hover table-users">
       <thead>
-        <tr>
-          <th>{{ 'settings.user.username' | translate }}</th>
-          <th>{{ 'settings.user.create_date' | translate }}</th>
-        </tr>
+      <tr>
+        <th>{{ 'settings.user.username' | translate }}</th>
+        <th>{{ 'settings.user.create_date' | translate }}</th>
+      </tr>
       </thead>
       <tbody>
-        <tr ng-repeat="user in users | orderBy: 'username'" ng-click="editUser(user)"
-            ng-class="{ active: $stateParams.username == user.username }">
-          <td>
-            <span ng-if="!user.disabled">{{ user.username }}</span>
-            <s ng-if="user.disabled">{{ user.username }}</s>
-            <span class="fas fa-lock" ng-show="user.totp_enabled" uib-tooltip="{{ 'settings.user.totp_enabled' | translate }}"></span>
-          </td>
-          <td>{{ user.create_date | date: dateFormat }}</td>
-        </tr>
+      <tr ng-repeat="user in users | orderBy: 'username'" ng-click="editUser(user)"
+          ng-class="{ active: $stateParams.username == user.username }">
+        <td>
+          <span ng-if="!user.disabled">{{ user.username }}</span>
+          <s ng-if="user.disabled">{{ user.username }}</s>
+          <span class="fas fa-lock" ng-show="user.totp_enabled" uib-tooltip="{{ 'settings.user.totp_enabled' | translate }}"></span>
+        </td>
+        <td>{{ user.create_date | date: dateFormat }}</td>
+      </tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top: 200px;"></div>
+
+    <h3>{{ 'settings.user.pending_requests' | translate }}</h3>
+    <table class="table table-hover table-requests">
+      <thead>
+      <tr>
+        <th>{{ 'settings.user.username' | translate }}</th>
+        <th>{{ 'settings.user.create_date' | translate }}</th>
+        <th>{{ 'settings.user.actions' | translate }}</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr ng-repeat="request in requests | orderBy: 'create_date'">
+        <td>{{ request.username }}</td>
+        <td>{{ request.create_date | date: dateFormat }}</td>
+        <td>
+          <div class="input-group">
+            <input type="password" class="form-control input-lg" style="width: 350px;"
+                   placeholder="{{ 'settings.user.password_placeholder' | translate }}"
+                   ng-model="request.password" />
+            <input type="number" class="form-control input-lg" style="width: 350px;"
+                   placeholder="{{ 'settings.user.storage_quota_placeholder' | translate }}"
+                   ng-model="request.storage_quota" />
+            <span class="input-group-btn">
+                <button class="btn btn-success" ng-click="approveRequest(request)">
+                  {{ 'settings.user.approve' | translate }}
+                </button>
+                <button class="btn btn-danger" ng-click="rejectRequest(request)">
+                  {{ 'settings.user.reject' | translate }}
+                </button>
+              </span>
+          </div>
+        </td>
+      </tr>
       </tbody>
     </table>
   </div>

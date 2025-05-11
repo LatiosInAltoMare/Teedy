@@ -302,6 +302,21 @@
       "username": "Username",
       "create_date": "Create date",
       "totp_enabled": "Two-factor authentication enabled for this account",
+      "disable_totp_message": "Are you sure you want to disable two-factor authentication for this user?",
+      "existing_users": "Existing Users",
+      "pending_requests": "Pending Registration Requests",
+      "actions": "Actions",
+      "approve": "Approve",
+      "reject": "Reject",
+      "approve_error_title": "Approval Failed",
+      "approve_error_message": "Please provide a password and storage quota",
+      "approve_success_title": "Request Approved",
+      "approve_success_message": "The registration request has been successfully approved",
+      "approve_error_username_exists": "The username is already in use",
+      "reject_confirm_title": "Confirm Rejection",
+      "reject_confirm_message": "Are you sure you want to reject this request?",
+      "password_placeholder": "Enter password",
+      "storage_quota_placeholder": "Enter storage quota (MB)",
       "edit": {
         "delete_user_title": "Delete user",
         "delete_user_message": "Do you really want to delete this user? All associated documents, files and tags will be deleted",
@@ -323,8 +338,7 @@
         "password_lost_sent_title": "Password reset email sent",
         "password_lost_sent_message": "A password reset email has been sent to <strong>{{ username }}</strong>",
         "disable_totp_btn": "Disable two-factor authentification for this user",
-        "disable_totp_title": "Disable two-factor authentication",
-        "disable_totp_message": "Are you sure you want to disable two-factor authentication for this user?"
+        "disable_totp_title": "Disable two-factor authentication"
       }
     },
     "workflow": {
