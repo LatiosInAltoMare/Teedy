@@ -1,5 +1,9 @@
 package com.sismics.docs.rest.resource;
 
+import com.aliyun.oss.ClientBuilderConfiguration;
+import com.aliyun.oss.common.auth.CredentialsProviderFactory;
+import com.aliyun.oss.common.auth.EnvironmentVariableCredentialsProvider;
+import com.aliyun.oss.common.comm.SignVersion;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
@@ -49,8 +53,13 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.MessageFormat;
 import java.util.List;
+import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
+import com.aliyun.oss.OSS;
+import com.aliyun.oss.OSSClientBuilder;
+import com.aliyun.oss.model.PutObjectResult;
 
 /**
  * File REST resources.
@@ -808,5 +817,37 @@ public class FileResource extends BaseResource {
                 throw new ForbiddenClientException();
             }
         }
+    }
+
+    @POST
+    @Path("{id: [a-z0-9\\-]+}/translate")
+    public Response translate(@PathParam("id") String id) {
+        if (!authenticate()) {
+            throw new ForbiddenClientException();
+        }
+
+        // Get the file
+        File file = findFile(id, null);
+        if (file == null) {
+            throw new NotFoundException();
+        }
+
+        // Get the user who created the file (for decryption)
+        UserDao userDao = new UserDao();
+        User user = userDao.getById(file.getUserId());
+        if (user == null) {
+            throw new NotFoundException();
+        }
+
+        // Decrypt the file
+        java.nio.file.Path storedFile = DirectoryUtil.getStorageDirectory().resolve(id);
+        java.nio.file.Path unencryptedFile;
+        try {
+            unencryptedFile = EncryptionUtil.decryptFile(storedFile, user.getPrivateKey());
+        } catch (Exception e) {
+            throw new ServerException("DecryptionError", "Error decrypting the file", e);
+        }
+
+        // 还未完成，需要补全翻译逻辑
     }
 }

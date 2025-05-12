@@ -98,6 +98,29 @@ angular.module('docs').controller('FileModalView', function ($uibModalInstance, 
     }
   };
 
+  $scope.translateFile = function() {
+    $scope.isTranslating = true; // Show loading state
+
+    Restangular.one('file/' + $stateParams.fileId + '/translate').post().then(function(response) {
+      $scope.isTranslating = false;
+      $scope.ossUrl = response.ossUrl; // Store the OSS URL for display
+
+      // Show success message with OSS URL (temporary, can be replaced with translation result)
+      var title = $translate.instant('file.view.translate_success_title');
+      var msg = $translate.instant('file.view.translate_success_message') + ': ' + $scope.ossUrl;
+      var btns = [{ result: 'ok', label: $translate.instant('ok'), cssClass: 'btn-primary' }];
+      $dialog.messageBox(title, msg, btns);
+    }, function(error) {
+      $scope.isTranslating = false;
+
+      // Show error message
+      var title = $translate.instant('file.view.translate_error_title');
+      var msg = $translate.instant('file.view.translate_error_message');
+      var btns = [{ result: 'ok', label: $translate.instant('ok'), cssClass: 'btn-primary' }];
+      $dialog.messageBox(title, msg, btns);
+    });
+  };
+
   /**
    * Close the file preview.
    */
