@@ -31,6 +31,7 @@ import com.sismics.util.HttpUtil;
 import com.sismics.util.JsonUtil;
 import com.sismics.util.context.ThreadLocalContext;
 import com.sismics.util.mime.MimeType;
+import jakarta.json.JsonReader;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
@@ -43,23 +44,37 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.core.StreamingOutput;
-import java.io.IOException;
-import java.io.InputStream;
+
+import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.MessageFormat;
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import com.aliyun.oss.OSS;
-import com.aliyun.oss.OSSClientBuilder;
-import com.aliyun.oss.model.PutObjectResult;
+import cn.hutool.crypto.SecureUtil;
+import cn.hutool.http.HttpRequest;
+import cn.hutool.http.HttpResponse;
+import cn.hutool.http.Method;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.Iterator;
+import java.util.Set;
+import java.util.TreeMap;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 /**
  * File REST resources.
@@ -819,6 +834,17 @@ public class FileResource extends BaseResource {
         }
     }
 
+    public static String BASE_URL = "https://api.niutrans.com";
+    public static String UPLOAD_TRANS_URL = BASE_URL + "/v2/doc/translate/upload";//上传并翻译接口
+    public static String GET_INFO_URL = BASE_URL + "/v2/doc/translate/status/{file_no}";//获取进度接口
+    public static String INTERRUPT_URL = BASE_URL + "/v2/doc/translate/interrupt/{file_no}";// 终止翻译接口
+    public static String DOWNLOAD_URL = BASE_URL + "/v2/doc/translate/download/{file_no}";//下载文件接口
+
+    public static String from = "en";
+    public static String to = "zh";
+    public static String apikey = "b6ff96e4d7c2b18d013672ba27444069";//在'控制台->API应用'中查看
+    public static String appId = "7X01747064350376";//应用唯一标识,在'控制台->API应用'中查看
+
     @POST
     @Path("{id: [a-z0-9\\-]+}/translate")
     public Response translate(@PathParam("id") String id) {
@@ -844,10 +870,87 @@ public class FileResource extends BaseResource {
         java.nio.file.Path unencryptedFile;
         try {
             unencryptedFile = EncryptionUtil.decryptFile(storedFile, user.getPrivateKey());
+
+            // 重命名解密后的文件为原始文件名
+            java.nio.file.Path targetFile = unencryptedFile.getParent().resolve(file.getName());
+            Files.move(unencryptedFile, targetFile, StandardCopyOption.REPLACE_EXISTING);
+            unencryptedFile = targetFile;
         } catch (Exception e) {
             throw new ServerException("DecryptionError", "Error decrypting the file", e);
         }
 
-        // 还未完成，需要补全翻译逻辑
+        String fileNo = uploadAndTrans(unencryptedFile);
+        JSONObject documentInfo = getDocumentInfo(fileNo);
+
+        while (Integer.parseInt(documentInfo.get("transStatus").toString()) == 103) {
+            documentInfo = getDocumentInfo(fileNo);
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        if (Integer.parseInt(documentInfo.get("transStatus").toString()) == 105) {
+            TreeMap<String, Object> requestParamsMap = new TreeMap();
+            requestParamsMap.put("type", 4);
+            authStrGenerate(requestParamsMap);
+            DOWNLOAD_URL = DOWNLOAD_URL.replace("{file_no}", fileNo);
+            String url = DOWNLOAD_URL + "?" + cn.hutool.http.HttpUtil.toParams(requestParamsMap);
+            System.out.println(url);
+            return Response.ok(new JSONObject().put("translatedUrl", url).toString()).build();
+        }
+
+//        String url="https://api.niutrans.com/v2/doc/translate/download/niu-cacfaf4cb52cadd61844cfba828a7b202df3b4?appId=7X01747064350376&authStr=2c26e6cc5310cae8efa790cc9bafff5a&timestamp=1747142107290&type=4";
+//        return Response.ok(new JSONObject().put("translatedUrl", url).toString()).build();
+
+        return null;
+    }
+
+    public static String uploadAndTrans(java.nio.file.Path file) {
+        TreeMap<String, Object> requestParamsMap = new TreeMap();
+        requestParamsMap.put("from", from);
+        requestParamsMap.put("to", to);
+        authStrGenerate(requestParamsMap);
+        requestParamsMap.put("file", file.toFile());
+        String response = null;
+        try {
+            response = cn.hutool.http.HttpUtil.post(UPLOAD_TRANS_URL, requestParamsMap);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        JSONObject jsonObject = JSONUtil.parseObj(response);
+        JSONObject dataObject = JSONUtil.parseObj(jsonObject.get("data"));
+        return dataObject.get("fileNo").toString();
+    }
+
+    public static JSONObject getDocumentInfo(String fileNo) {
+        TreeMap<String, Object> requestParamsMap = new TreeMap<>();
+        authStrGenerate(requestParamsMap);
+        String response = null;
+        GET_INFO_URL = GET_INFO_URL.replace("{file_no}", fileNo);
+        try {
+            response = cn.hutool.http.HttpUtil.get(GET_INFO_URL, requestParamsMap);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        JSONObject jsonObject = JSONUtil.parseObj(response);
+        return JSONUtil.parseObj(JSONUtil.toJsonStr(jsonObject.get("data")));
+    }
+
+    //生成权限字符串
+    public static void authStrGenerate(TreeMap<String, Object> requestParamsMap) {
+        requestParamsMap.put("appId", appId);
+        requestParamsMap.put("apikey", apikey);
+        requestParamsMap.put("timestamp", System.currentTimeMillis() + "");
+        StringBuilder requestParamsStr = new StringBuilder("");
+        Set<String> keys = requestParamsMap.keySet();
+        Iterator<String> iterator = keys.iterator();
+        while (iterator.hasNext()) {
+            String key = iterator.next();
+            requestParamsStr.append("&").append(key).append("=").append(requestParamsMap.get(key));
+        }
+        String paramsStr = requestParamsStr.toString().replaceFirst("&", "");
+        requestParamsMap.put("authStr", SecureUtil.md5(paramsStr));
+        requestParamsMap.remove("apikey");
     }
 }

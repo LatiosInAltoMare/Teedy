@@ -37,27 +37,35 @@
     </div>
 </div>
 
+
 <div class="text-center" style="position: relative;" ng-if="$stateParams.fileId">
-    <!-- Standard preview -->
+    <!-- 标准预览（图片，仅在未翻译且支持预览时显示） -->
     <img ng-src="../api/file/{{ $stateParams.fileId }}/data?size=web"
          ng-init="error = false"
          img-error="error = true"
-         ng-show="!error && canDisplayPreview()" />
+         ng-show="!error && canDisplayPreview() && !isTranslated" />
 
-    <!-- Media player -->
-    <a href class="video-overlay" ng-if="!error && (file.mimetype.substring(0, 6) == 'video/' || file.mimetype.substring(0, 6) == 'audio/')"
+    <!-- 媒体播放器（视频/音频，仅在未翻译且为媒体文件时显示） -->
+    <a href class="video-overlay" ng-if="!error && (file.mimetype.substring(0, 6) == 'video/' || file.mimetype.substring(0, 6) == 'audio/') && !isTranslated"
        ng-init="videoPlayer = false" ng-click="videoPlayer = true">
         <span class="fas fa-play-circle" ng-if="!videoPlayer"></span>
         <video ng-if="videoPlayer" autoplay="autoplay" loop="loop"
                controls="controls" ng-src="../api/file/{{ $stateParams.fileId }}/data"></video>
     </a>
 
-    <!-- PDF viewer -->
-    <iframe ng-src="{{ trustedFileUrl }}" class="pdf-viewer" scrolling="yes" ng-if="!error && file.mimetype == 'application/pdf'"></iframe>
+    <!-- PDF 查看器（用于原始 PDF 或翻译后的文件） -->
+    <iframe ng-src="{{ trustedFileUrl }}" class="pdf-viewer" scrolling="yes"
+            ng-if="!error && (file.mimetype == 'application/pdf' || isTranslated)"></iframe>
 
-    <!-- File not found -->
+    <!-- 文件未找到 -->
     <p class="well-lg" ng-show="error">
         <span class="fas fa-exclamation-triangle"></span>
         {{ 'file.view.not_found' | translate }}
+    </p>
+
+    <!-- 翻译加载提示 -->
+    <p class="well-lg" ng-show="isTranslating">
+        <span class="fas fa-spinner fa-spin"></span>
+        {{ 'file.view.translating' | translate }}
     </p>
 </div>

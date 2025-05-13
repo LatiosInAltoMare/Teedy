@@ -1,11 +1,9 @@
-'use strict';
+angular.module('docs').controller('FileModalView', function ($uibModalInstance, $scope, $state, $stateParams, $sce, Restangular, $transitions, $translate, $dialog) {
+  // 初始化翻译状态
+  $scope.isTranslated = false;
 
-/**
- * File modal view controller.
- */
-angular.module('docs').controller('FileModalView', function ($uibModalInstance, $scope, $state, $stateParams, $sce, Restangular, $transitions) {
   var setFile = function (files) {
-    // Search current file
+    // 搜索当前文件
     _.each(files, function (value) {
       if (value.id === $stateParams.fileId) {
         $scope.file = value;
@@ -14,12 +12,12 @@ angular.module('docs').controller('FileModalView', function ($uibModalInstance, 
     });
   };
 
-  // Load files
+  // 加载文件
   Restangular.one('file/list').get({ id: $stateParams.id }).then(function (data) {
     $scope.files = data.files;
     setFile(data.files);
 
-    // File not found, maybe it's a version
+    // 文件未找到，可能是版本
     if (!$scope.file) {
       Restangular.one('file/' + $stateParams.fileId + '/versions').get().then(function (data) {
         setFile(data.files);
@@ -27,9 +25,43 @@ angular.module('docs').controller('FileModalView', function ($uibModalInstance, 
     }
   });
 
-  /**
-   * Return the next file.
-   */
+  // 翻译文件
+  $scope.translateFile = function() {
+    $scope.isTranslating = true; // 显示加载状态
+
+    Restangular.one('file/' + $stateParams.fileId + '/translate').post().then(function(response) {
+      $scope.isTranslating = false;
+      $scope.isTranslated = true; // 标记为已翻译
+
+      // 替换 trustedFileUrl 为翻译文件的 URL
+      $scope.trustedFileUrl = $sce.trustAsResourceUrl(response.translatedUrl);
+
+      // 设置 mimetype 为 PDF（假设翻译文件为 PDF）
+      $scope.file.mimetype = 'application/pdf';
+
+      // 显示成功提示
+      var title = $translate.instant("Translate Successfully");
+      var msg = $translate.instant("The file has been translated");
+      var btns = [{ result: 'ok', label: $translate.instant('ok'), cssClass: 'btn-primary' }];
+      $dialog.messageBox(title, msg, btns);
+    }, function(error) {
+      $scope.isTranslating = false;
+
+      // 显示错误提示
+      var title = $translate.instant('file.view.translate_error_title');
+      var msg = $translate.instant('file.view.translate_error_message');
+      var btns = [{ result: 'ok', label: $translate.instant('ok'), cssClass: 'btn-primary' }];
+      $dialog.messageBox(title, msg, btns);
+    });
+  };
+
+  // 重置翻译状态和 URL
+  $scope.$on('$stateChangeSuccess', function() {
+    $scope.isTranslated = false;
+    $scope.trustedFileUrl = $sce.trustAsResourceUrl('../api/file/' + $stateParams.fileId + '/data');
+  });
+
+  // 其他现有函数（保持不变）
   $scope.nextFile = function () {
     var next = undefined;
     _.each($scope.files, function (value, key) {
@@ -40,9 +72,6 @@ angular.module('docs').controller('FileModalView', function ($uibModalInstance, 
     return next;
   };
 
-  /**
-   * Return the previous file.
-   */
   $scope.previousFile = function () {
     var previous = undefined;
     _.each($scope.files, function (value, key) {
@@ -53,9 +82,6 @@ angular.module('docs').controller('FileModalView', function ($uibModalInstance, 
     return previous;
   };
 
-  /**
-   * Navigate to the next file.
-   */
   $scope.goNextFile = function () {
     var next = $scope.nextFile();
     if (next) {
@@ -63,9 +89,6 @@ angular.module('docs').controller('FileModalView', function ($uibModalInstance, 
     }
   };
 
-  /**
-   * Navigate to the previous file.
-   */
   $scope.goPreviousFile = function () {
     var previous = $scope.previousFile();
     if (previous) {
@@ -73,62 +96,26 @@ angular.module('docs').controller('FileModalView', function ($uibModalInstance, 
     }
   };
 
-  /**
-   * Open the file in a new window.
-   */
   $scope.openFile = function () {
     window.open('../api/file/' + $stateParams.fileId + '/data');
   };
 
-  /**
-   * Open the file content a new window.
-   */
   $scope.openFileContent = function () {
     window.open('../api/file/' + $stateParams.fileId + '/data?size=content');
   };
 
-  /**
-   * Print the file.
-   */
   $scope.printFile = function () {
     var popup = window.open('../api/file/' + $stateParams.fileId + '/data', '_blank');
     popup.onload = function () {
       popup.print();
       popup.close();
-    }
+    };
   };
 
-  $scope.translateFile = function() {
-    $scope.isTranslating = true; // Show loading state
-
-    Restangular.one('file/' + $stateParams.fileId + '/translate').post().then(function(response) {
-      $scope.isTranslating = false;
-      $scope.ossUrl = response.ossUrl; // Store the OSS URL for display
-
-      // Show success message with OSS URL (temporary, can be replaced with translation result)
-      var title = $translate.instant('file.view.translate_success_title');
-      var msg = $translate.instant('file.view.translate_success_message') + ': ' + $scope.ossUrl;
-      var btns = [{ result: 'ok', label: $translate.instant('ok'), cssClass: 'btn-primary' }];
-      $dialog.messageBox(title, msg, btns);
-    }, function(error) {
-      $scope.isTranslating = false;
-
-      // Show error message
-      var title = $translate.instant('file.view.translate_error_title');
-      var msg = $translate.instant('file.view.translate_error_message');
-      var btns = [{ result: 'ok', label: $translate.instant('ok'), cssClass: 'btn-primary' }];
-      $dialog.messageBox(title, msg, btns);
-    });
-  };
-
-  /**
-   * Close the file preview.
-   */
   $scope.closeFile = function () {
     $uibModalInstance.dismiss();
   };
 
-  // Close the modal when the user exits this state
   var off = $transitions.onStart({}, function(transition) {
     if (!$uibModalInstance.closed) {
       if (transition.to().name === $state.current.name) {
@@ -140,9 +127,6 @@ angular.module('docs').controller('FileModalView', function ($uibModalInstance, 
     off();
   });
 
-  /**
-   * Return true if we can display the preview image.
-   */
   $scope.canDisplayPreview = function () {
     return $scope.file && $scope.file.mimetype !== 'application/pdf';
   };
